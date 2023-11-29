@@ -1,0 +1,39 @@
+#include <stdio.h>
+#include <string.h>
+#include<ctype.h>
+#define ALPHABET_SIZE 26
+void generateCipherSequence(const char *keyword, char *cipherSequence) {
+    int keywordLength = strlen(keyword);
+    int index = 0;
+    strcpy(cipherSequence, keyword);
+    for (char ch = 'A'; ch <= 'Z'; ch++) {
+        if (strchr(keyword, ch) == NULL) {
+           
+            cipherSequence[keywordLength + index] = ch;
+            index++;
+        }
+    }
+
+    cipherSequence[keywordLength + index] = '\0';
+}
+
+int main() {
+    const char *keyword = "CIPHER";
+    char cipherSequence[ALPHABET_SIZE + 1]; 
+
+    generateCipherSequence(keyword, cipherSequence);
+
+    printf("plain: ");
+    for (char ch = 'A'; ch <= 'Z'; ch++) {
+        printf("%c ", ch);
+    }
+
+    printf("\ncipher: ");
+    for (int i = 0; i < ALPHABET_SIZE; i++) {
+        printf("%c ", cipherSequence[i]);
+    }
+
+    printf("\n");
+
+    return 0;
+}
