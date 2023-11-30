@@ -1,0 +1,48 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <openssl/dsa.h>
+#include <openssl/sha.h>
+
+void generate_dsa_signature(const char *message, DSA *dsa_key) {
+    unsigned char hash[SHA256_DIGEST_LENGTH];
+    SHA256((const unsigned char *)message, strlen(message), hash);
+
+    BIGNUM *k = BN_new();
+    BN_rand_range(k, dsa_key->q);
+    BIGNUM *r = BN_new();
+    BN_mod_exp(r, dsa_key->g, k, dsa_key->p, dsa_key->ctx);
+    BN_mod(r, r, dsa_key->q, dsa_key->ctx);
+    BIGNUM *s = BN_new();
+    BIGNUM *x = dsa_key->priv_key;
+    BIGNUM *h = BN_bin2bn(hash, SHA256_DIGEST_LENGTH, NULL);
+    BIGNUM *temp1 = BN_new();
+    BIGNUM *temp2 = BN_new();
+
+    BN_mod_mul(temp1, x, r, dsa_key->q, dsa_key->ctx);
+    BN_mod_add(temp2, h, temp1, dsa_key->q, dsa_key->ctx);
+    BN_mod_inverse(temp1, k, dsa_key->q, dsa_key->ctx);
+    BN_mod_mul(s, temp1, temp2, dsa_key->q, dsa_key->ctx);
+    printf("Generated DSA Signature:\n");
+    printf("r: %s\n", BN_bn2hex(r));
+    printf("s: %s\n", BN_bn2hex(s));
+
+    BN_free(k);
+    BN_free(r);
+    BN_free(s);
+    BN_free(h);
+    BN_free(temp1);
+    BN_free(temp2);
+}
+
+int main() {
+  
+    DSA *dsa_key = DSA_generate_parameters(1024, NULL, 0, NULL, NULL, NULL, NULL);
+    DSA_generate_key(dsa_key);
+
+    const char *message = "Hello, DSA!";
+    generate_dsa_signature(message, dsa_key);
+    DSA_free(dsa_key);
+
+    return 0;
+}
